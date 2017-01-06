@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test</title>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+  $( function() {
+    console.log('start');
+    $("body").keydown(function(e) {
+    if(e.keyCode == 37) { // left
+      $("#perso").animate({
+        left: "-=20"
+      });
+    }
+    else if(e.keyCode == 39) { // right
+      $("#perso").animate({
+        left: "+=20"
+      });
+    }
+    else if(e.keyCode == 40) { // top
+      $("#perso").animate({
+        top: "+=20"
+      });
+    }
+    else if(e.keyCode == 38) { // bottom
+      $("#perso").animate({
+        top: "-=20"
+      });
+    }
+  });
+  } );
+  </script>
+</head>
+<body>
+<style type="text/css">
+#bg {
+  background: cyan;
+  width: 800px;
+  height: 800px;
+  position: relative;
+  z-index: 1;
+}
+#perso {
+  width: 20px;
+  height: 20px;
+  background: red;
+  position: absolute;
+  z-index: 2;
+  bottom: 0;
+  left: 0;
+}
+</style>
+<div id="bg">
+  <div id="perso"></div>
+</div>
+</body>
+</html>
