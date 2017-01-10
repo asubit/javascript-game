@@ -1,60 +1,188 @@
-<!doctype html>
+<!-- 
+Copyrigth 2017 © Antoine Subit
+Writed by Antoine Subit | http://www.subit.fr/antoine | asubit.dev@gmail.com
+-->
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Test</title>
+  <meta name="author" content="Antoine Subit">
+  <title>Asubit game</title>
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-  <script>
-  $( function() {
-    console.log('start');
-    $("body").keydown(function(e) {
-    if(e.keyCode == 37) { // left
-      $("#perso").animate({
-        left: "-=20"
-      });
-    }
-    else if(e.keyCode == 39) { // right
-      $("#perso").animate({
-        left: "+=20"
-      });
-    }
-    else if(e.keyCode == 40) { // top
-      $("#perso").animate({
-        top: "+=20"
-      });
-    }
-    else if(e.keyCode == 38) { // bottom
-      $("#perso").animate({
-        top: "-=20"
-      });
-    }
-  });
-  } );
-  </script>
 </head>
 <body>
 <style type="text/css">
-#bg {
-  background: cyan;
-  width: 800px;
-  height: 800px;
+#area {
+  background: #eee;
   position: relative;
+  overflow: hidden;
   z-index: 1;
 }
-#perso {
+#player {
+  width: 20px;
+  height: 20px;
+  background: green;
+  position: absolute;
+  z-index: 2;
+  top: 380px;
+  left: 380px;
+}
+.ennemy {
   width: 20px;
   height: 20px;
   background: red;
   position: absolute;
-  z-index: 2;
-  bottom: 0;
-  left: 0;
+  z-index: 3;
+}
+#game-over p,#level p {
+  width: 100%;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 50px;
+  font-family: Arial;
+  background: black;
+  color: white;
+  z-index: 4;
+}
+#game-over p {
+  line-height: 800px;
+}
+#level p {
+  line-height: 400px;
+}
+#start {
+  color: green;
+  cursor: pointer;
+}
+#start:hover {
+  color: orange;
 }
 </style>
-<div id="bg">
-  <div id="perso"></div>
+
+<div id="area">
+  <div id="level"><p>level <span id="level-id">1</span><br /><span id="start" data-level-id="1">start</span></p></div>
+  <div id="game-over"><p>game over</p></div>
+  <div id="player"></div>
 </div>
+
+<script type="text/javascript">
+  $( function() {
+    // Global vars
+    var player = $("#player");
+    var gameOver = $('#game-over');
+    var area = $('#area');
+    var level = $('#level');
+    var levelId = level.find('#start').attr('data-level-id');
+    var start = $('#level p span#start');
+    var gridX = 800;
+    var gridY = 800;
+    var ennemyId = 0;
+    // Init. game area
+    area.css({'width':gridX+'px','height':gridY+'px'});
+    gameOver.hide();
+    player.hide();
+    // Player controls
+    $("body").keydown(function(e) {
+      if(e.keyCode == 37) { // left
+        move(player, 'left');
+      }  else if(e.keyCode == 39) { // right
+        move(player, 'right');
+      } else if(e.keyCode == 40) { // top
+        move(player, 'bottom');
+      } else if(e.keyCode == 38) { // bottom
+        move(player, 'top');
+      }
+    });
+    // Start level
+    start.on('click', function(){
+      // Init. level vars
+      player.css({'top':'380px','left':'380px'});// place player on area center
+      player.fadeIn(500);// display player
+      level.fadeOut(500);// hide level screen
+      levelId = parseInt($(this).attr('data-level-id'));// get level ID
+      speed = 100/levelId;// Speed of ennemies (milliseconds)
+      nbEnnemyMax = 5*levelId;// Nomber of ennemies
+      onsetTime = 1000-(levelId*100);// Time of enemy appearance (milliseconds)
+      // Appearance of enemies
+      var nbEnnemy = 0;
+      while(nbEnnemy < nbEnnemyMax){
+        setTimeout(function() {
+          newEnnemy(speed);
+        }, onsetTime*nbEnnemy);
+        nbEnnemy+=1;
+        ennemyId+=1;
+      }
+      // Level complete
+      var timeLevel = (onsetTime+speed+40)*nbEnnemyMax;
+      console.log(timeLevel);
+      setTimeout(function() {
+        levelComplete();
+      }, timeLevel);
+    });
+
+    // FC "Level complete"
+    function levelComplete() {
+      level.find('#level-id').text(parseInt(levelId)+1);
+      level.find('#start').attr('data-level-id',parseInt(levelId)+1);
+      level.fadeIn(500);
+      player.fadeOut(500);
+    }
+    // FC "New ennemy"
+    function newEnnemy(speed) {
+      area.append('<div class="ennemy" id="ennemy'+ennemyId+'"></div>');
+      ennemy = $('#ennemy'+ennemyId);
+      directions = ['bottom', 'right'];
+      direction = directions[randomIntFromInterval(0,1)];
+      if (direction == 'bottom') {
+        ennemy.css({'top':'0px','left':randomIntFromInterval(0,780)+'px'});
+      } else if (direction == 'right') {
+        ennemy.css({'left':'0px','top':randomIntFromInterval(0,780)+'px'});
+      }
+      var nbMove = 1;
+      while(nbMove < 41) {
+        move(ennemy, direction, speed);
+        nbMove+=1;
+      }
+      if (nbMove == 40) {
+        ennemy.remove();
+      }
+      ennemyId++;
+    }
+    // FC "Move"
+    function move(el, d, s) {
+      if (!s) {s = 10;}
+      if (d == 'left') {
+        el.animate({left: "-=20"}, s);
+      } else if (d == 'right') {
+        el.animate({left: "+=20"}, s);
+      } else if (d == 'top') {
+        el.animate({top: "-=20"}, s);
+      } else if (d == 'bottom') {
+        el.animate({top: "+=20"}, s);
+      }
+    }
+    function randomIntFromInterval(min,max) {
+      return Math.floor(Math.random()*(max-min+1)+min);
+    }
+    /*function getPosition(el) {
+      return el.offset();
+    }
+    function isCollision() {
+      var isCollision = false;
+      $('.ennemy').each(function(){
+        if ((getPosition($(this)).top = getPosition(player).top) && (getPosition($(this)).left = getPosition(player).left)) {
+          isCollision = true;
+        }
+      });
+      return isCollision;
+    }
+    function gameOver() {
+      gameOver.fadeIn(500);
+    }*/
+  } );
+</script>
 </body>
 </html>
