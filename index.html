@@ -36,7 +36,16 @@ Writed by Antoine Subit | http://www.subit.fr/antoine | asubit.dev@gmail.com
   position: absolute;
   z-index: 3;
 }
+#level, #game-over {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 800px;
+  height: 800px;
+  z-index: 4;
+}
 #game-over p,#level p {
+  margin-top: 0;
   width: 100%;
   text-align: center;
   text-transform: uppercase;
@@ -45,12 +54,6 @@ Writed by Antoine Subit | http://www.subit.fr/antoine | asubit.dev@gmail.com
   font-family: Arial;
   background: black;
   color: white;
-  z-index: 4;
-}
-#game-over p {
-  line-height: 800px;
-}
-#level p {
   line-height: 400px;
 }
 #start {
@@ -60,11 +63,18 @@ Writed by Antoine Subit | http://www.subit.fr/antoine | asubit.dev@gmail.com
 #start:hover {
   color: orange;
 }
+#retry {
+  color: orange;
+  cursor: pointer;
+}
+#retry:hover {
+  color: green;
+}
 </style>
 
 <div id="area">
   <div id="level"><p>level <span id="level-id">1</span><br /><span id="start" data-level-id="1">start</span></p></div>
-  <div id="game-over"><p>game over</p></div>
+  <div id="game-over"><p>game over<br /><span id="retry">retry</span></p></div>
   <div id="player"></div>
 </div>
 
@@ -76,7 +86,7 @@ Writed by Antoine Subit | http://www.subit.fr/antoine | asubit.dev@gmail.com
     var area = $('#area');
     var level = $('#level');
     var levelId = level.find('#start').attr('data-level-id');
-    var start = $('#level p span#start');
+    var start = $('#level p span#start, #game-over p span#retry');
     var gridX = 800;
     var gridY = 800;
     var ennemyId = 0;
@@ -98,11 +108,12 @@ Writed by Antoine Subit | http://www.subit.fr/antoine | asubit.dev@gmail.com
     });
     // Start level
     start.on('click', function(){
+      gameOver.hide();
       // Init. level vars
       player.css({'top':'380px','left':'380px'});// place player on area center
       player.fadeIn(500);// display player
       level.fadeOut(500);// hide level screen
-      levelId = parseInt($(this).attr('data-level-id'));// get level ID
+      levelId = parseInt(level.find('#start').attr('data-level-id'));// get level ID
       speed = 100/levelId;// Speed of ennemies (milliseconds)
       nbEnnemyMax = 5*levelId;// Nomber of ennemies
       onsetTime = 1000-(levelId*100);// Time of enemy appearance (milliseconds)
@@ -145,6 +156,10 @@ Writed by Antoine Subit | http://www.subit.fr/antoine | asubit.dev@gmail.com
       while(nbMove < 41) {
         move(ennemy, direction, speed);
         nbMove+=1;
+        if(isCollision(ennemy)) {
+          stopGame();
+          break;
+        }
       }
       if (nbMove == 40) {
         ennemy.remove();
@@ -167,21 +182,19 @@ Writed by Antoine Subit | http://www.subit.fr/antoine | asubit.dev@gmail.com
     function randomIntFromInterval(min,max) {
       return Math.floor(Math.random()*(max-min+1)+min);
     }
-    /*function getPosition(el) {
-      return el.offset();
+    function getPosition(el) {
+      return el.position();
     }
-    function isCollision() {
+    function isCollision(ennemy) {
       var isCollision = false;
-      $('.ennemy').each(function(){
-        if ((getPosition($(this)).top = getPosition(player).top) && (getPosition($(this)).left = getPosition(player).left)) {
-          isCollision = true;
-        }
-      });
+      if ((getPosition(ennemy).top == getPosition(player).top) && (getPosition(ennemy).left == getPosition(player).left)) {
+        isCollision = true;
+      }
       return isCollision;
     }
-    function gameOver() {
+    function stopGame() {
       gameOver.fadeIn(500);
-    }*/
+    }
   } );
 </script>
 </body>
